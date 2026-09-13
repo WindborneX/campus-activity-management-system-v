@@ -75,18 +75,18 @@
 Vue3 前端 (Vite + Element Plus + Axios + Vue Router + Pinia)
         │ REST API (JSON, Authorization: Bearer <JWT>)
 Spring Boot 3 后端 (单模块)
-   Controller → Service(业务规则 R1~R7) → MyBatis-Plus → MySQL 8
+   Controller → Service(业务规则 R1~R7) → MyBatis-Plus → MySQL 9.6
 ```
 
-### 3.2 技术选型
+### 3.2 技术选型（已定稿，2026-09-13 确认）
 
 | 层 | 选型 |
 |---|---|
-| 前端 | Vue3 + Vite + Element Plus + Axios + Pinia |
-| 后端 | Spring Boot 3 + Spring Web + Validation + MyBatis-Plus |
-| 安全 | JWT (jjwt) + BCrypt |
-| 数据库 | MySQL 8 |
-| JDK | 17 |
+| 前端 | Vue 3 + Vite 5 + Element Plus + Axios + Pinia + Vue Router（JavaScript） |
+| 后端 | Spring Boot 3.3.5 + Spring Web + Validation + MyBatis-Plus 3.5.7 |
+| 安全 | JWT（jjwt 0.12.6）+ HandlerInterceptor 鉴权 + BCrypt（spring-security-crypto），不引入完整 Spring Security |
+| 数据库 | MySQL 9.6（mysql-connector-j 版本随 Boot BOM） |
+| JDK | 17（Temurin 17.0.19） |
 
 ### 3.3 后端模块划分
 
@@ -165,7 +165,7 @@ registration    (id, activity_id→activity, student_id→user, registered_at,
 - [x] 需求分析与工程意图确定
 - [x] 架构与数据库设计
 - [x] Git 仓库初始化 + .gitignore + README
-- [ ] 数据库建表脚本 + 后端骨架
+- [x] 数据库建表脚本 + 后端骨架
 - [ ] 后端：注册登录（JWT）
 - [ ] 后端：活动发布/管理
 - [ ] 后端：报名（业务规则 R1~R7）

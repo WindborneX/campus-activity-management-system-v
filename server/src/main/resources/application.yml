@@ -1,0 +1,23 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: campus-activity
+  # 敏感配置（数据库密码、JWT 密钥）从本地文件读取，该文件已被 .gitignore 忽略
+  config:
+    import: optional:application-local.yml
+  datasource:
+    url: jdbc:mysql://localhost:3306/campus_activity?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: ${db.password:}
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    banner: false
+
+jwt:
+  secret: ${jwt.secret:}
+  expire-hours: 24
