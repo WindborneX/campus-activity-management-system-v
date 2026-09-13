@@ -173,7 +173,7 @@ registration    (id, activity_id→activity, student_id→user, registered_at,
 - [x] 前端：骨架 + 登录注册页
 - [x] 前端：活动列表/详情页
 - [x] 前端：教师管理页 + 报名交互
-- [ ] 验证场景执行 + 实验报告
+- [x] 验证场景执行 + 实验报告
 
 ## 7. 验证方案（对应验收标准）
 
@@ -227,3 +227,4 @@ registration    (id, activity_id→activity, student_id→user, registered_at,
 | 2026-09-13 | 前端·教师管理页模块审批 | 输出审批包：发布/编辑/取消活动、查看报名名单；共用创建/编辑弹窗；提出 3 个待决策点 | 人工决策：**①时间格式用原生 Date 手写格式化（不引入 dayjs）②创建/编辑共用同一弹窗，mode 区分 ③报名名单不分页，一次拉取展示** | 复用 api/activities.js，据此实现 |
 | 2026-09-13 | 前端·教师管理页实现与验证 | 复用 api/activities.js 补充 mine/create/update/cancel/registrations；重写 Manage.vue：我的活动表格 + 创建/编辑共用弹窗（7 字段、原生 Date 格式化提交 `yyyy-MM-dd HH:mm:ss`、前端校验 deadline<start<end）+ 取消二次确认 + 名单弹窗表格 | 按已批方案实现 | API 测：用前端格式创建(id=8)/编辑/名单/取消 全 200；浏览器 UI 测：列表渲染/7 字段弹窗/已取消行编辑+取消按钮禁用/名单弹窗 全过；控制台零报错；`npm run build` 通过 |
 | 2026-09-13 | 修复：已取消活动编辑按钮未禁用 | 浏览器实测发现已取消(CANCELLED)活动的「编辑」按钮仍可点击（后端虽 400 兜底，但 UX 不一致） | 属明显错误修复，直接处理 | 编辑按钮加 `:disabled="row.stage==='CANCELLED'"`，与「取消活动」按钮一致 |
+| 2026-09-13 | 实验报告撰写 | 基于真实开发记录（README/代码/Git 历史/验证结果）撰写《实验报告.md》，覆盖实验目的、需求与工程意图、软件设计、迭代开发过程、实现与验证、AI 辅助开发总结 | 用户要求撰写实验报告 | 报告共 8 章，附项目目录结构与启动方式；提交后推送 |
