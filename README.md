@@ -172,7 +172,7 @@ registration    (id, activity_id→activity, student_id→user, registered_at,
 - [x] 后端：报名（业务规则 R1~R7）
 - [x] 前端：骨架 + 登录注册页
 - [x] 前端：活动列表/详情页
-- [ ] 前端：教师管理页 + 报名交互
+- [x] 前端：教师管理页 + 报名交互
 - [ ] 验证场景执行 + 实验报告
 
 ## 7. 验证方案（对应验收标准）
@@ -224,3 +224,6 @@ registration    (id, activity_id→activity, student_id→user, registered_at,
 | 2026-09-13 | 前端·活动列表/详情+报名模块审批 | 输出审批包：公开列表/详情、学生报名/取消交互、我的报名页；阶段徽章矩阵；提出 3 个待决策点 | 人工决策：**①无单活动报名态接口，登录学生统一调 GET /api/registrations/mine 在前端推导已报名集合，报名/取消成功后重新拉 /mine 同步 ②UPCOMING（已截止待开始）默认不出现在 open 列表，保持后端语义，详情页可直达 ③「我的报名」页归入本模块顺带实现** | 据此实现 |
 | 2026-09-13 | 前端·活动列表/详情+报名+我的报名 实现与验证 | 新增 api/activities.js、api/registrations.js、stores/myReg.js；重写 ActivityList（Tab 筛选+卡片+进度条）、ActivityDetail（信息+报名区+二次确认取消）、MyRegistrations（表格）；MainLayout 登录后拉 /mine、登出清除 | 按已批方案实现 | 浏览器 7 步全过：登录→列表 Tab 切换→详情→报名成功(按钮变取消+人数+1)→取消(恢复+人数-1)→我的报名空态→已截止/已满按钮禁用并显示原因；`npm run build` 通过 |
 | 2026-09-13 | 修复：禁用按钮点击穿透产生未捕获 Promise | 浏览器实测发现禁用态「立即报名」被点击穿透触发 doSignup，后端 400 后 async 函数 reject 未捕获 → Vue warn「Unhandled error during execution of component event handler」+ Axios 控制台报错 | 属明显错误修复，按规范直接处理 | doSignup 加入口守卫 `if(!canSignup) return` + try/catch 静默吸收；复测：点击禁用按钮无新 400 请求、控制台零报错 |
+| 2026-09-13 | 前端·教师管理页模块审批 | 输出审批包：发布/编辑/取消活动、查看报名名单；共用创建/编辑弹窗；提出 3 个待决策点 | 人工决策：**①时间格式用原生 Date 手写格式化（不引入 dayjs）②创建/编辑共用同一弹窗，mode 区分 ③报名名单不分页，一次拉取展示** | 复用 api/activities.js，据此实现 |
+| 2026-09-13 | 前端·教师管理页实现与验证 | 复用 api/activities.js 补充 mine/create/update/cancel/registrations；重写 Manage.vue：我的活动表格 + 创建/编辑共用弹窗（7 字段、原生 Date 格式化提交 `yyyy-MM-dd HH:mm:ss`、前端校验 deadline<start<end）+ 取消二次确认 + 名单弹窗表格 | 按已批方案实现 | API 测：用前端格式创建(id=8)/编辑/名单/取消 全 200；浏览器 UI 测：列表渲染/7 字段弹窗/已取消行编辑+取消按钮禁用/名单弹窗 全过；控制台零报错；`npm run build` 通过 |
+| 2026-09-13 | 修复：已取消活动编辑按钮未禁用 | 浏览器实测发现已取消(CANCELLED)活动的「编辑」按钮仍可点击（后端虽 400 兜底，但 UX 不一致） | 属明显错误修复，直接处理 | 编辑按钮加 `:disabled="row.stage==='CANCELLED'"`，与「取消活动」按钮一致 |
