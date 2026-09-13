@@ -1,0 +1,50 @@
+/* ===== 简洁学院风 全局基调 ===== */
+:root {
+  --brand: #2f5496;          /* 学院靛蓝 */
+  --brand-deep: #1f3864;
+  --brand-light: #eaf0fa;
+  --ink: #243044;
+  --ink-muted: #6b778c;
+  --paper: #f5f7fb;
+  --el-color-primary: #2f5496;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #app {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+a { color: var(--brand); text-decoration: none; }
+
+.page-container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--brand-deep);
+  margin: 4px 0 20px;
+}
+
+.muted { color: var(--ink-muted); font-size: 13px; }
+
+/* Element Plus 主色微调（覆盖 hover/active 系列） */
+.el-button--primary {
+  --el-button-bg-color: var(--brand);
+  --el-button-border-color: var(--brand);
+  --el-button-hover-bg-color: #3b65ad;
+  --el-button-hover-border-color: #3b65ad;
+  --el-button-active-bg-color: var(--brand-deep);
+  --el-button-active-border-color: var(--brand-deep);
+}

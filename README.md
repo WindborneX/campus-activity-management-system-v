@@ -170,7 +170,7 @@ registration    (id, activity_id→activity, student_id→user, registered_at,
 - [x] 后端：注册登录（JWT）
 - [x] 后端：活动发布/管理
 - [x] 后端：报名（业务规则 R1~R7）
-- [ ] 前端：骨架 + 登录注册页
+- [x] 前端：骨架 + 登录注册页
 - [ ] 前端：活动列表/详情页
 - [ ] 前端：教师管理页 + 报名交互
 - [ ] 验证场景执行 + 实验报告
@@ -218,3 +218,6 @@ registration    (id, activity_id→activity, student_id→user, registered_at,
 | 2026-09-13 | 报名与浏览模块（F5~F9，R1~R6）审批 | 输出审批包：公开浏览+报名/取消/名单+派生阶段（不改表结构）；提出契约缺口与 2 个业务待决策点 | 人工决策：**①批准新增 GET /api/registrations/mine（第 11 个 API，契约同步更新）②取消报名限活动开始前（方案 A）③列表参数用阶段 all/open/ongoing/finished（默认 open），已取消默认不出现在列表、详情可看并显示已取消** | 容量判定口径按已批「已报名数 ≥ 上限即拒绝」；据此实现 |
 | 2026-09-13 | 报名与浏览模块实现与验证 | 新增 4 文件（RegistrationService/RegistrationController/RegistrationResponse/MyRegistrationResponse），修改 3 文件（ActivityResponse 增 currentCount/stage 派生字段、ActivityService 增公开浏览与批量计数、ActivityController 增 2 个公开 GET）；零数据库变更；批量计数避免 N+1；规则严格按 角色→存在→取消→截止→容量→重复 顺序，UNIQUE 兜底 | 按已批方案实现 | C1 公开列表/C2 详情(含 currentCount、stage)/C2b 已取消详情 200、C3 教师报名 403、C4 报名 200、C5 重复 400、C6 满员 400（第三人被拒，取消后补位成功）、C7 过截止 400、C8 已取消 400、C9 不存在 404、C10 取消/重复取消 200/400、C11 名单 发布者 200/他人 403/学生 403（含用户名解析）、C12 我的报名 200/教师 403/未登录 401、**C13 容量改小于已报名 400（活动模块遗留规则②联调通过）**、C14 阶段筛选 200/非法 400、C16 未登录报名 401；**C15「活动开始后不可取消」受创建规则限制无法经 API 构造，仅代码审查覆盖**；测试活动 id=4~7 为联调数据，演示前清库 |
 | 2026-09-13 | 业务需求说明 HTML | 用户要求新建单文件 HTML 汇总业务需求、已实现功能与每步简单逻辑；产出《业务需求说明.html》（工程意图/角色边界/F1~F9/R1~R7/7 个流程/11 个 API 映射/3 表/覆盖结论） | 用户提出需求并授权提交上传 | 提交 445e619 之后的 docs 提交；后端业务闭环全部完成（11 API） |
+| 2026-09-13 | 前端模块一审批（骨架+登录注册） | 输出审批包：Vue3+Vite+Element Plus 最小依赖、Pinia 登录态、路由守卫角色控制、Axios 统一解包/401 处理 | 人工决策：**①依赖照单安装（vue3/vue-router4/pinia2/element-plus/axios + vite5，仅 JS）②骨架与登录注册合并为一个模块 ③目录名 web ④前后端联调通过 Nginx（浏览器只访问 Nginx 端口，不直连后端）⑤视觉基调：简洁学院风** | 提供 deploy/nginx/nginx.conf，axios 用相对路径 /api；据此实现 |
+| 2026-09-13 | 前端模块一实现与联调 | web/ 工程：package.json/vite.config.js/main.js/App.vue、router（守卫+meta.roles）、stores/auth（Pinia+localStorage 持久化）、api/request（Result 解包+401 清态跳转）、api/auth、MainLayout（顶栏角色入口+退出确认）、Login（登录/注册 Tab、与后端一致的前端校验）、4 个占位页；deploy/nginx 双配置：nginx.conf（本机版）、**nginx.docker.conf（Docker 版，经 host.docker.internal 回连宿主机，8090:80）**；vite host 改 0.0.0.0 供容器访问 | 用户指定 **Nginx 用 Docker 版**（镜像 nginx:latest 本地已存在），未另装软件 | npm install 成功；`npm run build` 通过（13.64s，仅 Element Plus 全量引入的 chunk 体积提示，V1.0 接受）；容器 campus-nginx 启动，curl 经 8090：ping 200、首页含 app/main.js、注册 webstu(userId=6) 200、登录 token 169 字符 |
+| 2026-09-13 | 修复：Nginx 同源后浏览器登录 403 | 浏览器自动化首验发现：POST 带 `Origin:http://localhost:8090`，Nginx 转发到 8080 后被 Spring 按「跨域」判定（8090≠8080），CORS 仅白名单 5173 → 403「Invalid CORS request」；curl 不带 Origin 未暴露。修复：Nginx 转发 /api 时 `proxy_set_header Origin ""`（不改后端代码），nginx -t 通过后 reload | 属明显错误修复，按规范直接处理并留痕；架构上浏览器确实只经 Nginx 同源，后端 CORS 不再参与 | 带 Origin 头 curl 登录 200；**浏览器自动化 5 步全过**：登录页渲染/错密码提示/正确登录跳 /activities 且导航栏按学生角色显示/访问 /manage 被守卫拦回/退出确认回 /login；控制台零报错零 Vue warn |
