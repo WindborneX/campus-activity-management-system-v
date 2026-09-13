@@ -35,12 +35,22 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import { useAuthStore } from '../stores/auth'
+import { useMyRegStore } from '../stores/myReg'
 
 const auth = useAuthStore()
+const myReg = useMyRegStore()
 const router = useRouter()
+
+onMounted(() => {
+  // 学生登录后拉取已报名集合（教师无意义）
+  if (auth.isLoggedIn && auth.isStudent) {
+    myReg.fetch().catch(() => myReg.clear())
+  }
+})
 
 function handleLogout() {
   ElMessageBox.confirm('确定退出登录吗？', '提示', {
@@ -49,6 +59,7 @@ function handleLogout() {
     type: 'warning'
   }).then(() => {
     auth.logout()
+    myReg.clear()
     router.push('/login')
   }).catch(() => {})
 }

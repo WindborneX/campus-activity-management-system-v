@@ -171,7 +171,7 @@ registration    (id, activity_id→activity, student_id→user, registered_at,
 - [x] 后端：活动发布/管理
 - [x] 后端：报名（业务规则 R1~R7）
 - [x] 前端：骨架 + 登录注册页
-- [ ] 前端：活动列表/详情页
+- [x] 前端：活动列表/详情页
 - [ ] 前端：教师管理页 + 报名交互
 - [ ] 验证场景执行 + 实验报告
 
@@ -221,3 +221,6 @@ registration    (id, activity_id→activity, student_id→user, registered_at,
 | 2026-09-13 | 前端模块一审批（骨架+登录注册） | 输出审批包：Vue3+Vite+Element Plus 最小依赖、Pinia 登录态、路由守卫角色控制、Axios 统一解包/401 处理 | 人工决策：**①依赖照单安装（vue3/vue-router4/pinia2/element-plus/axios + vite5，仅 JS）②骨架与登录注册合并为一个模块 ③目录名 web ④前后端联调通过 Nginx（浏览器只访问 Nginx 端口，不直连后端）⑤视觉基调：简洁学院风** | 提供 deploy/nginx/nginx.conf，axios 用相对路径 /api；据此实现 |
 | 2026-09-13 | 前端模块一实现与联调 | web/ 工程：package.json/vite.config.js/main.js/App.vue、router（守卫+meta.roles）、stores/auth（Pinia+localStorage 持久化）、api/request（Result 解包+401 清态跳转）、api/auth、MainLayout（顶栏角色入口+退出确认）、Login（登录/注册 Tab、与后端一致的前端校验）、4 个占位页；deploy/nginx 双配置：nginx.conf（本机版）、**nginx.docker.conf（Docker 版，经 host.docker.internal 回连宿主机，8090:80）**；vite host 改 0.0.0.0 供容器访问 | 用户指定 **Nginx 用 Docker 版**（镜像 nginx:latest 本地已存在），未另装软件 | npm install 成功；`npm run build` 通过（13.64s，仅 Element Plus 全量引入的 chunk 体积提示，V1.0 接受）；容器 campus-nginx 启动，curl 经 8090：ping 200、首页含 app/main.js、注册 webstu(userId=6) 200、登录 token 169 字符 |
 | 2026-09-13 | 修复：Nginx 同源后浏览器登录 403 | 浏览器自动化首验发现：POST 带 `Origin:http://localhost:8090`，Nginx 转发到 8080 后被 Spring 按「跨域」判定（8090≠8080），CORS 仅白名单 5173 → 403「Invalid CORS request」；curl 不带 Origin 未暴露。修复：Nginx 转发 /api 时 `proxy_set_header Origin ""`（不改后端代码），nginx -t 通过后 reload | 属明显错误修复，按规范直接处理并留痕；架构上浏览器确实只经 Nginx 同源，后端 CORS 不再参与 | 带 Origin 头 curl 登录 200；**浏览器自动化 5 步全过**：登录页渲染/错密码提示/正确登录跳 /activities 且导航栏按学生角色显示/访问 /manage 被守卫拦回/退出确认回 /login；控制台零报错零 Vue warn |
+| 2026-09-13 | 前端·活动列表/详情+报名模块审批 | 输出审批包：公开列表/详情、学生报名/取消交互、我的报名页；阶段徽章矩阵；提出 3 个待决策点 | 人工决策：**①无单活动报名态接口，登录学生统一调 GET /api/registrations/mine 在前端推导已报名集合，报名/取消成功后重新拉 /mine 同步 ②UPCOMING（已截止待开始）默认不出现在 open 列表，保持后端语义，详情页可直达 ③「我的报名」页归入本模块顺带实现** | 据此实现 |
+| 2026-09-13 | 前端·活动列表/详情+报名+我的报名 实现与验证 | 新增 api/activities.js、api/registrations.js、stores/myReg.js；重写 ActivityList（Tab 筛选+卡片+进度条）、ActivityDetail（信息+报名区+二次确认取消）、MyRegistrations（表格）；MainLayout 登录后拉 /mine、登出清除 | 按已批方案实现 | 浏览器 7 步全过：登录→列表 Tab 切换→详情→报名成功(按钮变取消+人数+1)→取消(恢复+人数-1)→我的报名空态→已截止/已满按钮禁用并显示原因；`npm run build` 通过 |
+| 2026-09-13 | 修复：禁用按钮点击穿透产生未捕获 Promise | 浏览器实测发现禁用态「立即报名」被点击穿透触发 doSignup，后端 400 后 async 函数 reject 未捕获 → Vue warn「Unhandled error during execution of component event handler」+ Axios 控制台报错 | 属明显错误修复，按规范直接处理 | doSignup 加入口守卫 `if(!canSignup) return` + try/catch 静默吸收；复测：点击禁用按钮无新 400 请求、控制台零报错 |
