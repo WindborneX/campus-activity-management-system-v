@@ -35,10 +35,38 @@ public class ActivityResponse {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 
-    public static ActivityResponse from(Activity a) {
+    /** 当前已报名人数（实时统计，不入库） */
+    private long currentCount;
+
+    /**
+     * 派生阶段（实时计算，不入库）：
+     * CANCELLED 已取消 / OPEN 报名中 / UPCOMING 报名已截止待开始 / ONGOING 进行中 / FINISHED 已结束
+     */
+    private String stage;
+
+    /** 由活动实体与实时报名人数构造 */
+    public static ActivityResponse from(Activity a, long currentCount) {
         return new ActivityResponse(
                 a.getId(), a.getTeacherId(), a.getTitle(), a.getDescription(), a.getLocation(),
                 a.getStartTime(), a.getEndTime(), a.getSignupDeadline(),
-                a.getMaxParticipants(), a.getStatus(), a.getCreatedAt());
+                a.getMaxParticipants(), a.getStatus(), a.getCreatedAt(),
+                currentCount, stageOf(a, LocalDateTime.now()));
+    }
+
+    /** 按状态与当前时间派生活动阶段 */
+    public static String stageOf(Activity a, LocalDateTime now) {
+        if ("CANCELLED".equals(a.getStatus())) {
+            return "CANCELLED";
+        }
+        if (now.isBefore(a.getSignupDeadline())) {
+            return "OPEN";
+        }
+        if (now.isBefore(a.getStartTime())) {
+            return "UPCOMING";
+        }
+        if (now.isBefore(a.getEndTime())) {
+            return "ONGOING";
+        }
+        return "FINISHED";
     }
 }

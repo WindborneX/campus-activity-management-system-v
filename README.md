@@ -101,7 +101,7 @@ server/src/main/java/com/campus/activity/
 └── config/       JWT 过滤器, Web 配置, CORS
 ```
 
-### 3.4 API 清单（10 个）
+### 3.4 API 清单（11 个）
 
 | 方法 | 路径 | 说明 | 相关规则 |
 |---|---|---|---|
@@ -115,6 +115,7 @@ server/src/main/java/com/campus/activity/
 | POST | /api/activities/{id}/signup | 报名 | R1 R2 R3 R4 R6 |
 | DELETE | /api/activities/{id}/signup | 取消报名 | R1 仅本人 |
 | GET | /api/activities/{id}/registrations | 报名名单 | R5 |
+| GET | /api/registrations/mine | 我的报名（学生，返回活动信息+报名时间） | R1 学生；V1.0 第 11 个 API，人工批准新增 |
 
 ### 3.5 数据库设计（3 张表）
 
@@ -168,7 +169,7 @@ registration    (id, activity_id→activity, student_id→user, registered_at,
 - [x] 数据库建表脚本 + 后端骨架
 - [x] 后端：注册登录（JWT）
 - [x] 后端：活动发布/管理
-- [ ] 后端：报名（业务规则 R1~R7）
+- [x] 后端：报名（业务规则 R1~R7）
 - [ ] 前端：骨架 + 登录注册页
 - [ ] 前端：活动列表/详情页
 - [ ] 前端：教师管理页 + 报名交互
@@ -214,3 +215,5 @@ registration    (id, activity_id→activity, student_id→user, registered_at,
 | 2026-09-13 | 登录认证模块（F1/F2，R7） | 规范精简后首个模块：按「①流程 ②规则 ③方案 ④问题」输出审批包获批；核对发现现有实现与方案完全一致，**零代码改动**；发现旧库结构冲突（方案 A 备份重建，AI 两次代执行涉密命令被安全策略拦截→用户知情授权后执行）；运行时验证 A1~A9 全部通过 | 批改意见：「可以来写第一个模块了」（批准实现）、「不不不，你直接运行吧」（授权代执行 DB 重建）；审批通过方案 A（JWT） | A1/A2 注册 200、A3 重复 400、A4/A5 参数 400、A6 登录签发 JWT、A7/A8 统一防探测提示 400、A9 未登录 401、A9b 带 token 过鉴权 404（接口未实现属预期）；A10 落库哈希检查由用户执行 |
 | 2026-09-13 | 活动发布与管理模块（F3/F4，R5）审批 | 输出审批包：教师 CRUD、角色+所有权（R5）双层 403、取消软删除；提出 3 个待决策问题 | 人工决策：**①报名截止时间必须严格早于活动开始时间（deadline < start，非 ≤）②修改容量不得小于当前已报名人数 ③不考虑并发问题（V1.0 接受）** | 决策记录于此，据此实现 |
 | 2026-09-13 | 活动发布与管理模块实现与验证 | 新增 4 文件（ActivitySaveRequest/ActivityResponse/ActivityService/ActivityController），BizException 零改动（复用双参构造）；时间窗与授权规则全部在 Service 层；取消=软删除 | 审批包批准后实现 | B1 创建 200、B2 学生 403「仅教师可执行该操作」、B3 截止=开始 400、B4 开始在过去 400、B5 结束<开始 400、B6 空标题 400、B7 跨教师 403、B8 本人修改 200、B10 不存在 404、B11a 取消 200、B11b 改已取消 400、B11c 重复取消 400、B12 我的列表 200、B13 未登录 401；中文 UTF-8 端到端正常；**规则②（容量<已报名）待报名模块联调验证**；id=1/2 为早期错误编码产生的脏测试数据，最终演示前建议清库 |
+| 2026-09-13 | 报名与浏览模块（F5~F9，R1~R6）审批 | 输出审批包：公开浏览+报名/取消/名单+派生阶段（不改表结构）；提出契约缺口与 2 个业务待决策点 | 人工决策：**①批准新增 GET /api/registrations/mine（第 11 个 API，契约同步更新）②取消报名限活动开始前（方案 A）③列表参数用阶段 all/open/ongoing/finished（默认 open），已取消默认不出现在列表、详情可看并显示已取消** | 容量判定口径按已批「已报名数 ≥ 上限即拒绝」；据此实现 |
+| 2026-09-13 | 报名与浏览模块实现与验证 | 新增 4 文件（RegistrationService/RegistrationController/RegistrationResponse/MyRegistrationResponse），修改 3 文件（ActivityResponse 增 currentCount/stage 派生字段、ActivityService 增公开浏览与批量计数、ActivityController 增 2 个公开 GET）；零数据库变更；批量计数避免 N+1；规则严格按 角色→存在→取消→截止→容量→重复 顺序，UNIQUE 兜底 | 按已批方案实现 | C1 公开列表/C2 详情(含 currentCount、stage)/C2b 已取消详情 200、C3 教师报名 403、C4 报名 200、C5 重复 400、C6 满员 400（第三人被拒，取消后补位成功）、C7 过截止 400、C8 已取消 400、C9 不存在 404、C10 取消/重复取消 200/400、C11 名单 发布者 200/他人 403/学生 403（含用户名解析）、C12 我的报名 200/教师 403/未登录 401、**C13 容量改小于已报名 400（活动模块遗留规则②联调通过）**、C14 阶段筛选 200/非法 400、C16 未登录报名 401；**C15「活动开始后不可取消」受创建规则限制无法经 API 构造，仅代码审查覆盖**；测试活动 id=4~7 为联调数据，演示前清库 |

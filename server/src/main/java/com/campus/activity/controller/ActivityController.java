@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -29,6 +30,18 @@ import java.util.List;
 public class ActivityController {
 
     private final ActivityService activityService;
+
+    /** F5 公开活动列表（无需登录），stage: all/open/ongoing/finished，默认 open */
+    @GetMapping
+    public Result<List<ActivityResponse>> list(@RequestParam(required = false) String stage) {
+        return Result.ok(activityService.listPublic(stage));
+    }
+
+    /** F6 公开活动详情（无需登录，已取消活动可查看） */
+    @GetMapping("/{id}")
+    public Result<ActivityResponse> detail(@PathVariable Long id) {
+        return Result.ok(activityService.getPublic(id));
+    }
 
     /** F3 教师发布活动 */
     @PostMapping
